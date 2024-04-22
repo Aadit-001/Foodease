@@ -1,10 +1,14 @@
 package com.example.loginpage;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -15,26 +19,28 @@ public class SplashScreen extends AppCompatActivity {
      private static int SPLASH_SCREEN = 2500;
     //variables
     Animation topAnim , bottomAnim;
-    ImageView logo;
     TextView title, slogan;
+    ImageView logo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_splash_screen);
+        Log.d("Scheduling Alarm","at 02:00am");
+        AlarmScheduler.scheduleMidnightUpdate(SplashScreen.this);
+
 
         //Animations
         topAnim = AnimationUtils.loadAnimation(this,R.anim.top_animation);
         bottomAnim = AnimationUtils.loadAnimation(this,R.anim.top_animation);
 
-        //hooks
-        logo = findViewById(R.id.logo);
         title = findViewById(R.id.title);
         slogan = findViewById(R.id.slogan);
+        logo = findViewById(R.id.logo);
 
-        logo.setAnimation(topAnim);
         title.setAnimation(bottomAnim);
-        slogan.setAnimation(bottomAnim);
+        logo.setAnimation(bottomAnim);
+        slogan.setAnimation(topAnim);
 
         new Handler().postDelayed(new Runnable() {
             @Override

@@ -46,13 +46,14 @@ public class Mess_1 extends AppCompatActivity implements NavigationView.OnNaviga
     private HashMap<Integer, Class<?>> activityMap;
     TextView mess_name;
     RecyclerView recyclerView;
+    String user_id,restaurant_name,restaurant_id;
     List<CategoriesDataClass> dataList ;
     DatabaseReference databaseReference;
     ValueEventListener eventListener;
-    public static final String EXTRA_CAT_NAME = "com.example.Vendor_menu_detail.extra.CAT_NAME";
-    public static final String EXTRA_REST_NAME = "com.example.Vendor_menu_detail.extra.REST_NAME";
-    public static final String EXTRA_CAT_ID = "com.example.Vendor_menu_detail.extra.CAT_ID";
-    public static final String EXTRA_REST_ID = "com.example.Vendor_menu_detail.extra.REST_ID";
+    public static final String EXTRA_CAT_NAME = "com.example.User_menu_detail.extra.CAT_NAME";
+    public static final String EXTRA_REST_NAME = "com.example.User_menu_detail.extra.REST_NAME";
+    public static final String EXTRA_CAT_ID = "com.example.User_menu_detail.extra.CAT_ID";
+    public static final String EXTRA_REST_ID = "com.example.User_menu_detail.extra.REST_ID";
 
     @SuppressLint({"MissingInflatedId", "NotifyDataSetChanged"})
     @Override
@@ -91,6 +92,7 @@ public class Mess_1 extends AppCompatActivity implements NavigationView.OnNaviga
       });
 
         mAuth = FirebaseAuth.getInstance();
+        user_id = mAuth.getCurrentUser().getUid();
         mAuth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -117,7 +119,6 @@ public class Mess_1 extends AppCompatActivity implements NavigationView.OnNaviga
 
         fragmentMap = new HashMap<>();
         fragmentMap.put(R.id.my_orders, User_orderHistory.class);
-        fragmentMap.put(R.id.my_cart,User_cart.class);
         fragmentMap.put(R.id.feedback, Feedback.class);
         fragmentMap.put(R.id.about, About.class);
 
@@ -135,22 +136,34 @@ public class Mess_1 extends AppCompatActivity implements NavigationView.OnNaviga
         adapter = new Categories_myAdapter(Mess_1.this , dataList,false);
         recyclerView.setAdapter(adapter);
 
-       // retrieveVendorUserKeyByName();
-        retrieveRestaurantIdByName(mess_name.getText().toString());
+        retrieveRestaurantIdByName();
 
-//        adapter.setOnItemClickListener(new Categories_myAdapter.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(int position, boolean isVendor) {
-//                if(!isVendor){
-//                    Intent intent = new Intent(Mess_1.this,User_menu_detail.class);
-//                    intent.putExtra(EXTRA_CAT_NAME,dataList.get(position).getName());
-//                    intent.putExtra(EXTRA_REST_NAME,mess_name.getText().toString());
-//                    intent.putExtra(EXTRA_CAT_ID,dataList.get(position).getKey());
-//                    intent.putExtra(EXTRA_REST_ID,dataList.get(position).getRestaurant_id());
-//                    startActivity(intent);
-//                }
-//            }
-//        });
+        adapter.setOnItemClickListener(new Categories_myAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(int position, boolean isVendor) {
+                if(!isVendor){
+                    restaurant_name = mess_name.getText().toString();
+                    restaurant_id = dataList.get(position).getRestaurant_id();
+
+                    Intent intent = new Intent(Mess_1.this,User_menu_detail.class);
+                    intent.putExtra(EXTRA_CAT_NAME,dataList.get(position).getName());
+                    intent.putExtra(EXTRA_REST_NAME,restaurant_name);
+                    intent.putExtra(EXTRA_CAT_ID,dataList.get(position).getKey());
+                    intent.putExtra(EXTRA_REST_ID,restaurant_id);
+                    startActivity(intent);
+                }
+            }
+
+            @Override
+            public void onEditClick(int position) {
+
+            }
+
+            @Override
+            public void onDeleteClick(int position) {
+
+            }
+        });
     }
 
     @Override
@@ -167,58 +180,42 @@ public class Mess_1 extends AppCompatActivity implements NavigationView.OnNaviga
             }
             return true;
         }
-        Class<?> activityClass = activityMap.get(item.getItemId());
-        if (activityClass != null) {
-            intent = new Intent(Mess_1.this, activityClass);
-            startActivity(intent);
+        if (item.getItemId() == R.id.my_cart) {
+            checkCartAndNavigate(item);
+        } else {
+            Class<?> activityClass = activityMap.get(item.getItemId());
+            if (activityClass != null) {
+                intent = new Intent(Mess_1.this, activityClass);
+                startActivity(intent);
+            }
+            drawerLayout.closeDrawer(GravityCompat.START);
         }
-        drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
 
-//    private void retrieveVendorUserKeyByName(){
-//        DatabaseReference vendorRef = FirebaseDatabase.getInstance().getReference("vendors");
-//        vendorRef.orderByChild("restaurant_name").equalTo(mess_name.getText().toString()).addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                if (snapshot.exists()) {
-//                    DataSnapshot userSnapshot = snapshot.getChildren().iterator().next();
-//                    String userId = userSnapshot.getKey();
-//                    Log.d("User Id","Id :" + userId);
-//                    retrieveRestaurantKey(userId);
-//                } else {
-//                    Toast.makeText(Mess_1.this, "No vendor found for this key", Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//                Toast.makeText(Mess_1.this, "Failed to fetch key for the vendor: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//    }
-//
-//    private void retrieveRestaurantKey(String userId) {
-//        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("vendors").child(userId);
-//        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                if (snapshot.exists()) {
-//                    restaurant_id = snapshot.child("key").getValue(String.class);
-//                    HandleDatabase(restaurant_id);
-//                } else {
-//                    Toast.makeText(Mess_1.this, "No registered restaurant for id: " + userId, Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//                // Handle database error
-//                Toast.makeText(Mess_1.this, "Failed to fetch restaurant key: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//    }
+    private void checkCartAndNavigate(MenuItem item) {
+        DatabaseReference userCartRef = FirebaseDatabase.getInstance().getReference("users").child(user_id).child("cart");
+        userCartRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    Intent intent = new Intent(Mess_1.this, User_cart.class);
+                    intent.putExtra("User Id",user_id);
+                    intent.putExtra("restaurant_name",restaurant_name);
+                    intent.putExtra("restaurant_id",restaurant_id);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(Mess_1.this, "Your cart is empty!", Toast.LENGTH_SHORT).show();
+                }
+            }
 
-    private void retrieveRestaurantIdByName(String restaurantName) {
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(Mess_1.this, "Failed to check cart: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void retrieveRestaurantIdByName() {
         DatabaseReference restaurantRef = FirebaseDatabase.getInstance().getReference("restaurants");
         restaurantRef.orderByChild("restaurant_name").equalTo(mess_name.getText().toString()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

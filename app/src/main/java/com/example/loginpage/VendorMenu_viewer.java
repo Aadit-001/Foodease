@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,8 +32,6 @@ public class VendorMenu_viewer extends AppCompatActivity {
     private Categories_myAdapter adapter;
 
     List<CategoriesDataClass> dataList ;
-   // private List<Category> categoryList = new ArrayList<>();
-
     private TextView restaurant_name ;
 
     private AlertDialog dialog;
@@ -76,6 +75,14 @@ public class VendorMenu_viewer extends AppCompatActivity {
 
         retrieveRestaurantIdByName();
 
+        TextView addCategories = findViewById(R.id.addCategories);
+        addCategories.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                 Intent intent = new Intent(VendorMenu_viewer.this , Vendor_category_upload.class);
+                 startActivity(intent);
+            }
+        });
     }
 
     private void retrieveRestaurantIdByName() {
@@ -116,7 +123,6 @@ public class VendorMenu_viewer extends AppCompatActivity {
                     String categoryId = categorySnapshot.child("key").getValue(String.class);
                     CategoriesDataClass dataClass = new CategoriesDataClass(name, imageUrl,restaurant_id,categoryId);
                     dataList.add(dataClass);
-                    Log.d("CatID(inside handleDB)",categorySnapshot.child("key").getValue(String.class));
                 }
                 adapter.notifyDataSetChanged();
                 dialog.dismiss();
@@ -140,16 +146,22 @@ public class VendorMenu_viewer extends AppCompatActivity {
                         intent.putExtra(EXTRA_CAT_NAME,dataList.get(position).getName());
                         intent.putExtra(EXTRA_REST_NAME,restaurant_name.getText().toString());
                         intent.putExtra(EXTRA_CAT_ID,dataList.get(position).getKey());
-                        Log.d("DataList size",dataList.size()+"");
-                        Log.d("CatergoryName(Not sent):",dataList.get(position).getName());
-                        Log.d("RestID(Not sent):",dataList.get(position).getRestaurant_id());
-                        Log.d("CatID(Not sent):",dataList.get(position).getKey());
                         intent.putExtra(EXTRA_REST_ID,dataList.get(position).getRestaurant_id());
                         startActivity(intent);
                     } else {
                         Log.e("VendorMenu_viewer", "DataList is null or position is out of bounds");
                     }
                 }
+            }
+
+            @Override
+            public void onEditClick(int position) {
+
+            }
+
+            @Override
+            public void onDeleteClick(int position) {
+
             }
         });
     }
